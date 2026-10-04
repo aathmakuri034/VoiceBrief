@@ -26,7 +26,7 @@ PROJECT_ID = os.environ.get("PROJECT_ID")
 LOCATION = os.environ.get("LOCATION")
 MODEL = os.environ.get("MODEL")
 VOICE_NAME = os.environ.get("VOICE_NAME")
-GOOGLE_GENAI_USE_VERTEXAI = os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "FALSE")
+GOOGLE_GENAI_USE_ENTERPRISE = os.environ.get("GOOGLE_GENAI_USE_ENTERPRISE", "FALSE")
 # API Key for Gemini API (supports both GOOGLE_API_KEY and GEMINI_API_KEY)
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
 
@@ -41,37 +41,31 @@ def validate_env_vars():
         missing_vars.append("VOICE_NAME")
     
     # Check authentication method
-    use_vertex = GOOGLE_GENAI_USE_VERTEXAI.upper() == "TRUE"
+    use_enterprise = GOOGLE_GENAI_USE_ENTERPRISE.upper() == "TRUE"
     
-    # IMPORTANT: Live API (real-time voice streaming) REQUIRES Vertex AI authentication
-    # API keys are NOT supported for Live API - only for standard Gemini API calls
-    if not use_vertex:
-        # Force Vertex AI for Live API
-        error_msg = (
-            f"\n{'='*70}\n"
-            f"ERROR: Live API requires Vertex AI authentication\n"
-            f"{'='*70}\n"
-            f"\nThe Gemini Live API (used for real-time voice streaming) requires\n"
-            f"Vertex AI authentication with OAuth2 credentials. API keys are NOT\n"
-            f"supported for Live API connections.\n"
-            f"\nPlease update your .env file:\n"
-            f"  GOOGLE_GENAI_USE_VERTEXAI=TRUE\n"
-            f"  PROJECT_ID=your-project-id\n"
-            f"  LOCATION=us-central1\n"
-            f"\nThen set up Google Cloud credentials:\n"
-            f"  - Set GOOGLE_APPLICATION_CREDENTIALS to service account key file, OR\n"
-            f"  - Run: gcloud auth application-default login\n"
-            f"\n{'='*70}\n"
-        )
-        stream_logger.error(error_msg)
-        raise ValueError(error_msg)
-    
-    # Using Vertex AI - need PROJECT_ID and LOCATION
-    if not PROJECT_ID:
-        missing_vars.append("PROJECT_ID (required for Vertex AI)")
-    if not LOCATION:
-        missing_vars.append("LOCATION (required for Vertex AI)")
-    # Note: Vertex AI uses Google Cloud credentials (service account or gcloud auth)
+    if not use_enterprise:
+        # Using Google AI Studio (Developer API) - need an API key
+        if not GOOGLE_API_KEY:
+            missing_vars.append("GOOGLE_API_KEY (or GEMINI_API_KEY)")
+            
+            error_msg = (
+                f"\n{'='*70}\n"
+                f"ERROR: Missing API Key for Google AI Studio\n"
+                f"{'='*70}\n"
+                f"\nSince GOOGLE_GENAI_USE_ENTERPRISE is not TRUE, you must provide an API key.\n"
+                f"Please update your .env file with:\n"
+                f"  GEMINI_API_KEY=your-api-key\n"
+                f"\n{'='*70}\n"
+            )
+            stream_logger.error(error_msg)
+            raise ValueError(error_msg)
+    else:
+        # Using Gemini Agent Enterprise - need PROJECT_ID and LOCATION
+        if not PROJECT_ID:
+            missing_vars.append("PROJECT_ID (required for Gemini Agent Enterprise)")
+        if not LOCATION:
+            missing_vars.append("LOCATION (required for Gemini Agent Enterprise)")
+        # Note: Gemini Agent Enterprise uses Google Cloud credentials (service account or gcloud auth)
     
     if missing_vars:
         env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
@@ -93,27 +87,11 @@ def validate_env_vars():
                 f"  - MODEL: e.g., 'gemini-1.5-pro' (must be Live API compatible)\n"
                 f"  - VOICE_NAME: e.g., 'aoede'\n"
             )
-            
-            # Live API always requires Vertex AI
-            error_msg += (
-                f"  - PROJECT_ID: your Google Cloud project ID\n"
-                f"  - LOCATION: e.g., 'us-central1'\n"
-                f"  - GOOGLE_GENAI_USE_VERTEXAI: TRUE (REQUIRED for Live API)\n"
-                f"\nAlso ensure Google Cloud credentials are configured:\n"
-                f"  - Set GOOGLE_APPLICATION_CREDENTIALS to service account key file, OR\n"
-                f"  - Run: gcloud auth application-default login\n"
-            )
         else:
             error_msg += (
                 f"\nCreate a .env file with at least:\n"
                 f"  MODEL=gemini-1.5-pro\n"
                 f"  VOICE_NAME=aoede\n"
-            )
-            # Live API always requires Vertex AI
-            error_msg += (
-                f"  PROJECT_ID=your-project-id\n"
-                f"  LOCATION=us-central1\n"
-                f"  GOOGLE_GENAI_USE_VERTEXAI=TRUE\n"
             )
         
         error_msg += f"\n{'='*70}\n"

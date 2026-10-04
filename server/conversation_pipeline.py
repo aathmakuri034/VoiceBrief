@@ -130,12 +130,22 @@ class JobExtractor:
     """Extracts structured job data using Vertex AI"""
     
     def __init__(self):
-        """Initialize Vertex AI client"""
-        self.client = Client(
-            vertexai=True,
-            project=PROJECT_ID,
-            location=LOCATION
-        )
+        """Initialize Client for either Gemini Agent Enterprise or Google AI Studio"""
+        from core_utils import GOOGLE_GENAI_USE_ENTERPRISE, PROJECT_ID, LOCATION, GOOGLE_API_KEY
+        
+        use_enterprise = GOOGLE_GENAI_USE_ENTERPRISE.upper() == "TRUE"
+        
+        if use_enterprise:
+            self.client = Client(
+                enterprise=True,
+                project=PROJECT_ID,
+                location=LOCATION
+            )
+        else:
+            self.client = Client(
+                api_key=GOOGLE_API_KEY
+            )
+            
         self.model = MODEL
         self.lock = asyncio.Lock()
     
@@ -900,13 +910,23 @@ class JobSummaryTracker:
         self.extractor = JobExtractor()
         self.pending_extractions: Dict[str, asyncio.Task] = {}
 
-        # Initialize Azure Blob Storage
-        try:
-            self.blob_storage = AzureBlobStorage()
-            logger.info(f"Azure Blob Storage initialized successfully: {self.blob_storage.container_name}")
-        except Exception as e:
-            logger.error(f"Failed to initialize Azure Blob Storage: {e}")
-            self.blob_storage = None
+        # Azure Blob Storage is optional. When AZURE_STORAGE_CONNECTION_STRING is
+        # not configured, fall back to local-only storage (job schemas are always
+        # written to conversation_data/ regardless).
+        self.blob_storage = None
+        if os.getenv("AZURE_STORAGE_CONNECTION_STRING"):
+            try:
+                self.blob_storage = AzureBlobStorage()
+                logger.info(
+                    "Azure Blob Storage initialized successfully: "
+                    f"{self.blob_storage.container_name}"
+                )
+            except Exception:
+                logger.exception("Failed to initialize Azure Blob Storage")
+        else:
+            logger.info(
+                "AZURE_STORAGE_CONNECTION_STRING not set; using local storage only"
+            )
     
     async def extract_and_save_from_note(
         self,

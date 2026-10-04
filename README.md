@@ -87,21 +87,21 @@ See the main [README.md](README.md) for detailed frontend usage.
 
 ### Backend (.env in server/)
 
-**IMPORTANT:** The Live API (real-time voice streaming) **REQUIRES** Vertex AI authentication. API keys are **NOT** supported for Live API.
+**IMPORTANT:** The Live API (real-time voice streaming) **REQUIRES** Gemini Agent Enterprise authentication. API keys are **NOT** supported for Live API.
 
-### Vertex AI Configuration (Required)
+### Gemini Agent Enterprise Configuration (Required)
 
 ```env
 PROJECT_ID=your-project-id
 LOCATION=us-central1
 MODEL=gemini-1.5-pro
 VOICE_NAME=aoede
-GOOGLE_GENAI_USE_VERTEXAI=TRUE
+GOOGLE_GENAI_USE_ENTERPRISE=TRUE
 ```
 
 **Note:** For Live API, use models like `gemini-1.5-pro`, `gemini-1.5-flash`, or `gemini-2.0-flash`. The experimental model `gemini-2.0-flash-exp` is NOT supported for Live API.
 
-**Why Vertex AI is Required:**
+**Why Gemini Agent Enterprise is Required:**
 The Gemini Live API (used for real-time voice streaming) requires OAuth2 authentication. API keys only work for standard API calls, not Live API.
 
 **Set up Google Cloud credentials:**
@@ -113,7 +113,7 @@ export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
 gcloud auth application-default login
 ```
 
-**Enable Vertex AI API:**
+**Enable Gemini Agent Enterprise API:**
 ```bash
 gcloud services enable aiplatform.googleapis.com
 ```

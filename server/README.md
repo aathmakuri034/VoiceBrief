@@ -63,20 +63,20 @@ cp .env.example .env
 
 Edit `.env` with your configuration.
 
-**IMPORTANT:** The Live API (real-time voice streaming) **REQUIRES** Vertex AI authentication. API keys are **NOT** supported for Live API connections. You must use Vertex AI.
+**IMPORTANT:** The Live API (real-time voice streaming) **REQUIRES** Gemini Agent Enterprise authentication. API keys are **NOT** supported for Live API connections. You must use Vertex AI.
 
-### Vertex AI Configuration (Required for Live API)
+### Gemini Agent Enterprise Configuration (Required for Live API)
 
 ```env
 PROJECT_ID=your-project-id
 LOCATION=us-central1
 MODEL=gemini-1.5-pro
 VOICE_NAME=aoede
-GOOGLE_GENAI_USE_VERTEXAI=TRUE
+GOOGLE_GENAI_USE_ENTERPRISE=TRUE
 ```
 
-**Why Vertex AI is Required:**
-The Gemini Live API (used for real-time voice streaming) requires OAuth2 authentication through Vertex AI. API keys only work for standard Gemini API calls, not for Live API connections.
+**Why Gemini Agent Enterprise is Required:**
+The Gemini Live API (used for real-time voice streaming) requires OAuth2 authentication through Gemini Agent Enterprise. API keys only work for standard Gemini API calls, not for Live API connections.
 
 **Set up Google Cloud credentials:**
 
@@ -219,10 +219,10 @@ Available voice names (prebuilt voices):
 
 ### ADK/API Issues
 
-**IMPORTANT:** Live API requires Vertex AI - API keys are NOT supported.
+**IMPORTANT:** Live API requires Gemini Agent Enterprise - API keys are NOT supported.
 
-**For Vertex AI (REQUIRED for Live API):**
-- Verify `GOOGLE_GENAI_USE_VERTEXAI=TRUE` in your `.env` file
+**For Gemini Agent Enterprise (REQUIRED for Live API):**
+- Verify `GOOGLE_GENAI_USE_ENTERPRISE=TRUE` in your `.env` file
 - Verify Google Cloud credentials are properly configured:
   - Check `GOOGLE_APPLICATION_CREDENTIALS` points to valid service account key, OR
   - Run `gcloud auth application-default login` for local development
@@ -232,13 +232,13 @@ Available voice names (prebuilt voices):
   export CLOUDSDK_PYTHON=/opt/homebrew/bin/python3
   ```
 - Check that PROJECT_ID and LOCATION are correct
-- Ensure the Vertex AI API is enabled in your Google Cloud project:
+- Ensure the Gemini Agent Enterprise API is enabled in your Google Cloud project:
   ```bash
   gcloud services enable aiplatform.googleapis.com
   ```
-- Verify you have the necessary IAM permissions (Vertex AI User role)
+- Verify you have the necessary IAM permissions (Gemini Agent Enterprise User role)
 - Check API quotas and limits in Google Cloud Console
-- If you see "API keys are not supported" error, you must use Vertex AI, not API keys
+- If you see "API keys are not supported" error, you must use Gemini Agent Enterprise, not API keys
 - **If you see "model is not supported in the live api" error:**
   - The model you're using doesn't support Live API
   - Use `gemini-1.5-pro`, `gemini-1.5-flash`, or `gemini-2.0-flash` (without `-exp` suffix)
